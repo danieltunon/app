@@ -3,7 +3,7 @@ const knex = require('../db.js');
 function saveTemplate(template, userId) {
   return knex('templates')
     .insert({
-      template: JSON.stringify(template.template), 
+      template: JSON.stringify(template.template),
       name: template.name,
       user_twitter_id: userId,
       active: true
@@ -38,6 +38,11 @@ function getTemplateNames(userId) {
     .where({user_twitter_id: userId})
     .select('template_id', 'name')
     .orderBy('name');
+}
+
+function getAllTemplates() {
+  return knex('templates')
+    .select('template_id', 'user_twitter_id');
 }
 
 module.exports = {
