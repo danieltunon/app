@@ -1,5 +1,5 @@
 const async = require('async');
-const Tweets = require('../../server/db/controllers/tweetsController');
+const Tweets = require('../server/db/controllers/tweetsController');
 
 function createPostJob(generatedTweetId, scheduledId, res) {
   console.log('job is running');

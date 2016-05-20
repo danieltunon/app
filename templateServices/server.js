@@ -1,8 +1,8 @@
 const express = require('express');
 var bodyParser = require('body-parser');
 require('dotenv').config();
-const templateQueue = require('./templateServices/templateQueue');
-const scheduleQueue = require('../schedulingServices/scheduleQueue');
+const templateQueue = require('./templateQueue');
+const scheduleQueue = require('../schedulingService/scheduleQueue');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: 'true' }));
