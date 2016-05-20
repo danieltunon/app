@@ -69,6 +69,12 @@ function deleteGeneratedTweet(tweet) {
     .del();
 }
 
+function deleteScheduledTweet(schedule_id) {
+  return knex('scheduledtweets')
+    .where({ schedule_id: schedule_id })
+    .del();
+}
+
 function modifyTweetStatus(bot_tweet_id, status) {
   return knex('generatedtweets')
     .where({ bot_tweet_id: bot_tweet_id })
