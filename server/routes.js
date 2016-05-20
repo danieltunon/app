@@ -72,8 +72,16 @@ module.exports = function(app, passport) {
     .catch(err => res.status(500).send(err));
   });
 
-  app.post('/tweets/:id', function(req, res) {
-
+  app.post('/tweets/:id', function (req, res) {
+    Tweets.joinTweetAndUserByTweetId(req.params.id)
+    .then(response => twit.post(
+      response.bot_tweet_body,
+      response.token, response.tokenSecret))
+    .then(data => Tweets.savePostedTweet(data))
+    // using bot_tweet_id to modify generatedtweets table to show as 'posted'
+    .then(id => Tweets.modifyTweetStatus(req.params.id, 'posted'))
+    .then(status => res.status(201).send(status))
+    .catch(err => res.status(500).send(err));
   });
 
   // create route for scheduling

@@ -70,9 +70,16 @@ function deleteGeneratedTweet(tweet) {
 }
 
 function deleteScheduledTweet(schedule_id) {
-  return knex('scheduledtweets')
+  return knex('generatedtweets')
     .where({ schedule_id: schedule_id })
-    .del();
+    .del()
+    .then(() =>
+      knex('scheduledtweets')
+      .where({ schedule_id: schedule_id })
+      .del()
+    )
+    .then(console.log)
+    .catch(console.log);
 }
 
 function modifyTweetStatus(bot_tweet_id, status) {
@@ -98,20 +105,20 @@ function scheduleTweet(bot_tweet_id, scheduleTime) {
   return knex('generatedtweets')
     .where({ bot_tweet_id: bot_tweet_id })
     .select('schedule_id')
-    .then(id => { 
+    .then(id => {
       // console.log('id of schedule tweet ------> ', id);
       if (id[0].schedule_id === null) {
         // console.log('ID IS NULL--------->')
         return knex('scheduledtweets')
         .insert({scheduled_time: scheduleTime }, 'schedule_id')
-        .then(id => { 
+        .then(id => {
           return knex('generatedtweets')
             .where({ bot_tweet_id: bot_tweet_id })
             .update({
                 schedule_id: id[0],
                 tweet_status: 'scheduled',
                 updated_at: new Date(),
-              }, 'tweet_status')  
+              }, 'tweet_status')
         })
       } else {
         // console.log("UPDATE SCHEDULE!!!!");
@@ -143,15 +150,17 @@ function deleteGeneratedTweets() {
   });
 };
 
-// UNFINISHED -------> MOVE TO SERVICE  
+// UNFINISHED -------> MOVE TO SERVICE
 function findReadyTweets() {
-  var nextFifteen = moment().add('15', 'minutes').format('X'); 
+  console.log('ready tweets')
+  var nextFifteen = moment().add('15', 'minutes').format('X');
   var fifteenAgo = moment().subtract('15', 'minutes').format('X');//unix timestamp
   // console.log(moment.unix(fifteen).calendar());
   return knex('scheduledtweets')
   .whereBetween('scheduled_time', [fifteenAgo, nextFifteen])
   .innerJoin('generatedtweets', 'scheduledtweets.schedule_id', 'generatedtweets.schedule_id')
   .select('scheduledtweets.schedule_id', 'generatedtweets.bot_tweet_id', 'generatedtweets.user_twitter_id')
+  .then(result => {console.log('ready result', result); return result;})
   .catch(console.log);
 }
 
@@ -169,10 +178,12 @@ module.exports = {
   getGeneratedTweets,
   saveGeneratedTweets,
   getScheduledTweets,
+  deleteScheduledTweet,
   deleteGeneratedTweet,
   getPostedTweets,
   savePostedTweet,
   modifyTweetStatus,
   modifyTweetText,
   scheduleTweet,
+  findReadyTweets,
 };

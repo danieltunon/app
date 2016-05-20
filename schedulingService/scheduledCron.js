@@ -1,7 +1,8 @@
-
+const Tweets = require('../server/db/controllers/tweetsController');
 require('isomorphic-fetch');
 const enqueue = require('./scheduleQueue').enqueue;
 
-// Template.getAllTemplates()
-// .then(enqueue)
-// .catch(console.log);
+Tweets.findReadyTweets()
+.then(enqueue)
+.then(console.log)
+.catch(console.log);

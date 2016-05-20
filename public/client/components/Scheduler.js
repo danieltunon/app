@@ -27,7 +27,7 @@ const style = {
 
 function setTime(time) {
   var times = {
-    '1 hour': new moment().add(1, 'hour').format('X'),
+    '1 hour': new moment().add(2, 'minutes').format('X'),
     '3 hours': new moment().add(3, 'hour').format('X'),
     '6 hours': new moment().add(6, 'hour').format('X'),
     '12 hours': new moment().add(12, 'hour').format('X'),
