@@ -4,9 +4,8 @@ exports.up = function(knex, Promise) {
     knex.schema.createTable('scheduledtweets', function(table) {
       table.increments('schedule_id').primary();
       table.string('scheduled_time');
-    }),
-    knex.schema.table('generatedtweets', function(table) {
-      table.integer('schedule_id').references('schedule_id').inTable('scheduledtweets');
+      table.integer('bot_tweet_id').references('bot_tweet_id').inTable('generatedtweets');
+      table.timestamps(true, true);
     }),
     knex.schema.createTable('templates', function(table) {
       table.increments('template_id').primary();
@@ -14,13 +13,12 @@ exports.up = function(knex, Promise) {
       table.string('name');
       table.boolean('active');
       table.string('user_twitter_id').references('user_twitter_id').inTable('users');
+      table.timestamps(true, true);
     })
   ]);
 };
 
 exports.down = function (knex, Promise) {
-  return knex.schema.table('generatedtweets', function(table) {
-    table.dropColumn('schedule_id');
-  }).dropTable('scheduledtweets')
+  return knex.dropTable('scheduledtweets')
   .dropTable('templates');
 };
