@@ -71,7 +71,6 @@ function deleteScheduledTweet(schedule_id) {
   return knex('scheduledtweets')
     .where({ schedule_id: schedule_id })
     .del()
-    .then(console.log)
     .catch(console.log);
 }
 
@@ -132,7 +131,7 @@ function deleteGeneratedTweets() {
       if (moment(date.created_at).add(24, 'hours').isBefore(currentDate)) {
         //delete tweets from database that are more than 24 hours old
         knex.table('generatedtweets')
-        .where({'bot_tweet_id': date.bot_tweet_id })
+        .where({ bot_tweet_id: date.bot_tweet_id })
         .del();
       }
     return dates;
@@ -147,14 +146,10 @@ function findReadyTweets() {
   var fifteenAgo = moment().subtract('15', 'minutes').format('X');//unix timestamp
   // console.log(moment.unix(fifteen).calendar());
   return knex('scheduledtweets')
-  .whereBetween('scheduled_time', [fifteenAgo, nextFifteen])
-  .innerJoin('generatedtweets', 'scheduledtweets.schedule_id', 'generatedtweets.schedule_id')
-  .select(
-    'scheduledtweets.schedule_id',
-    'generatedtweets.bot_tweet_id',
-    'generatedtweets.user_twitter_id'
-  )
-  .then(result => {console.log('ready result', result); return result;})
+  .where('scheduled_time', '<', moment().format('X'))
+  // .whereBetween('scheduled_time', [fifteenAgo, nextFifteen])
+  .select()
+  .then(results => {console.log('ready result', results); return results;})
   .catch(console.log);
 }
 
