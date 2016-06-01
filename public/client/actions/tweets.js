@@ -136,7 +136,7 @@ export function postTweetAsync(id) {
 export function getScheduledTweetsAsync() {
   return dispatch => {
     dispatch(fetchRequest());
-    return fetch('/tweets/scheduled', 
+    return fetch('/tweets/scheduled',
       { method: 'GET', credentials: 'same-origin' })
       .then(result => result.json())
       .then(result => {
@@ -147,7 +147,7 @@ export function getScheduledTweetsAsync() {
         console.error(err);
         dispatch(fetchFailure(err));
       });
-  }; 
+  };
 }
 
 export function editTweetAsync(id, tweet_text) {
