@@ -47,7 +47,6 @@ function getGeneratedTweets(userID, page) {
 function getScheduledTweets(userID) {
   return knex('generatedtweets')
   .where({ user_twitter_id: userID, tweet_status: 'scheduled' })
-  .innerJoin('scheduledtweets', 'generatedtweets.schedule_id', 'scheduledtweets.schedule_id')
   .select();
 }
 
@@ -97,11 +96,14 @@ function modifyTweetText(bot_tweet_id, bot_tweet_body) {
 function scheduleTweet(bot_tweet_id, scheduleTime) {
   return knex('generatedtweets')
     .where({ bot_tweet_id: bot_tweet_id })
-    .select('status')
+    .select('tweet_status')
     .then((results) => {
-      if (results[0].status === 'available') {
+      if (results[0].tweet_status === 'available') {
         return knex('scheduledtweets')
-        .insert({ scheduled_time: scheduleTime }, 'schedule_id');
+        .insert({
+          scheduled_time: scheduleTime,
+          bot_tweet_id: bot_tweet_id,
+        }, 'schedule_id');
       }
       return knex('scheduledtweets')
       .where({ bot_tweet_id: bot_tweet_id })
