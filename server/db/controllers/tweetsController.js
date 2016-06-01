@@ -1,7 +1,7 @@
 const knex = require('../db.js');
 const moment = require('moment');
 
-function scrubFetchedTweet(tweet, userId)  {
+function scrubFetchedTweet(tweet, userId) {
   return {
     tweet_id_str: tweet.id_str,
     user_twitter_id: userId,
@@ -36,7 +36,6 @@ function saveGeneratedTweets(tweets) {
 }
 
 function getGeneratedTweets(userID, page) {
-  console.log(page);
   return knex('generatedtweets')
     .where({ user_twitter_id: userID, tweet_status: 'available' })
     .select()
@@ -70,14 +69,9 @@ function deleteGeneratedTweet(tweet) {
 }
 
 function deleteScheduledTweet(schedule_id) {
-  return knex('generatedtweets')
+  return knex('scheduledtweets')
     .where({ schedule_id: schedule_id })
     .del()
-    .then(() =>
-      knex('scheduledtweets')
-      .where({ schedule_id: schedule_id })
-      .del()
-    )
     .then(console.log)
     .catch(console.log);
 }
@@ -101,36 +95,30 @@ function modifyTweetText(bot_tweet_id, bot_tweet_body) {
 }
 
 function scheduleTweet(bot_tweet_id, scheduleTime) {
-
   return knex('generatedtweets')
     .where({ bot_tweet_id: bot_tweet_id })
-    .select('schedule_id')
-    .then(id => {
-      // console.log('id of schedule tweet ------> ', id);
-      if (id[0].schedule_id === null) {
-        // console.log('ID IS NULL--------->')
+    .select('status')
+    .then((results) => {
+      if (results[0].status === 'available') {
         return knex('scheduledtweets')
-        .insert({scheduled_time: scheduleTime }, 'schedule_id')
-        .then(id => {
-          return knex('generatedtweets')
-            .where({ bot_tweet_id: bot_tweet_id })
-            .update({
-                schedule_id: id[0],
-                tweet_status: 'scheduled',
-                updated_at: new Date(),
-              }, 'tweet_status')
-        })
-      } else {
-        // console.log("UPDATE SCHEDULE!!!!");
-        return knex('scheduledtweets')
-        .where({ schedule_id : id[0].schedule_id })
-        .update({
-          scheduled_time: scheduleTime
-        }, 'schedule_id');
+        .insert({ scheduled_time: scheduleTime }, 'schedule_id');
       }
+      return knex('scheduledtweets')
+      .where({ bot_tweet_id: bot_tweet_id })
+      .update({
+        scheduled_time: scheduleTime,
+      }, 'schedule_id');
     })
-    .catch(err => console.log(err));
-};
+    .then(() =>
+      knex('generatedtweets')
+      .where({ bot_tweet_id: bot_tweet_id })
+      .update({
+        tweet_status: 'scheduled',
+        updated_at: new Date(),
+      }, 'tweet_status')
+    )
+    .catch(console.log);
+}
 
 function deleteGeneratedTweets() {
   const currentDate = moment();
@@ -159,7 +147,11 @@ function findReadyTweets() {
   return knex('scheduledtweets')
   .whereBetween('scheduled_time', [fifteenAgo, nextFifteen])
   .innerJoin('generatedtweets', 'scheduledtweets.schedule_id', 'generatedtweets.schedule_id')
-  .select('scheduledtweets.schedule_id', 'generatedtweets.bot_tweet_id', 'generatedtweets.user_twitter_id')
+  .select(
+    'scheduledtweets.schedule_id',
+    'generatedtweets.bot_tweet_id',
+    'generatedtweets.user_twitter_id'
+  )
   .then(result => {console.log('ready result', result); return result;})
   .catch(console.log);
 }
